@@ -1,0 +1,116 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>|Q|U|A|D|</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        padding: 0;
+        margin: 0;
+      }
+
+      #layout {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #canvas {
+        border: 1px solid black;
+        height: 600px;
+        /* width: 100vw;
+        height: 100vh; */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="layout">
+      <canvas id="canvas" width="800" height="600"></canvas>
+      <textarea rows="10" id="input">
+{(-156.21972285423715,19.171180087143625) (-155.66276737808303,19.791098266372771)}</textarea
+      >
+      <button id="go">Go</button>
+    </div>
+    <script>
+      class Rect {
+        constructor(minX, minY, maxX, maxY) {
+          this.minX = minX;
+          this.minY = minY;
+          this.maxX = maxX;
+          this.maxY = maxY;
+        }
+
+        get width() {
+          return this.maxX - this.minX;
+        }
+
+        get height() {
+          return this.maxY - this.minY;
+        }
+
+        get center() {
+          return { x: (this.maxX + this.minX) / 2, y: (this.maxY + this.minY) / 2 };
+        }
+
+        scale = factor => {
+          return new Rect(this.minX * factor, this.minY * factor, this.maxX * factor, this.maxY * factor);
+        };
+
+        translate = (dx, dy) => {
+          return new Rect(this.minX + dx, this.minY + dy, this.maxX + dx, this.maxY + dy);
+        };
+
+        translateCenterToPoint = (x, y) => {
+          let prevCenter = this.center;
+          let dx = x - prevCenter.x;
+          let dy = y - prevCenter.y;
+
+          return this.translate(dx, dy);
+        };
+      }
+
+      function run() {
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+        let width = canvas.width;
+        let height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "red";
+
+        let origin = {
+          x: width / 2,
+          y: height / 2
+        };
+
+        const scale = 1.5;
+        const offset = {
+          x: 300,
+          y: 400
+        };
+
+        let pattern = /{\((-?\d+\.\d*),(-?\d+\.\d*)\) \((-?\d+\.\d*),(-?\d+\.\d*)\)}/;
+        let input = document.getElementById("input").value;
+
+        let splitInput = input.split("\n");
+
+        for (let str of splitInput) {
+          let found = str.match(pattern);
+          if (!found) continue;
+
+          let rect = new Rect(parseFloat(found[2]), parseFloat(found[1]), parseFloat(found[4]), parseFloat(found[3]));
+          let adjustedRect = rect.scale(scale).translate(offset.x, offset.y);
+          ctx.strokeRect(adjustedRect.minX, adjustedRect.minY, adjustedRect.width, adjustedRect.height);
+        }
+      }
+
+      document.getElementById("go").addEventListener("click", run);
+
+      run();
+    </script>
+  </body>
+</html>
